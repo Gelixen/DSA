@@ -1,60 +1,63 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-# def print_hi(name):
-# Use a breakpoint in the code line below to debug your script.
-# print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
 import json
 from collections import Counter
 
-def read_json_file(file_path):
+SETTINGS_FILE_PATH = 'settings.json'
+
+INPUT_PATH_KEY = 'inputPath'
+OUTPUT_PATH_KEY = 'outputPath'
+LENGTH_ORDER_KEY = 'lengthOrder'
+COUNT_ORDER_KEY = 'countOrder'
+
+
+def read_json_file(file_path: str):
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return data
+        with open(file_path) as file:
+            return json.load(file)
     except FileNotFoundError:
         print('Error: File not found.')
     except json.JSONDecodeError:
         print('Error: Invalid JSON format.')
 
-def read_file(file_path):
+
+def read_text_file(file_path: str):
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            content = file.read()  # Reads the whole file as a single string
-            print(content)  # Print the entire content
-            return content
+        with open(file_path) as file:
+            return file.read()
     except FileNotFoundError:
         print('Error: File not found.')
     except Exception as e:
         print(f'An error occurred: {e}')
 
+
+def write_to_file(file_path: str, sorted_words_with_count: list[tuple[str, int]]):
+    try:
+        with open(file_path, 'w') as file:
+            for word, count in sorted_words_with_count:
+                file.write(f'Word: {word} Length: {len(word)} Count: {count}\n')
+    except FileNotFoundError:
+        print('Error: File not found.')
+    except Exception as e:
+        print(f'An error occurred: {e}')
+
+
 if __name__ == '__main__':
-    settings_file_path = 'settings.json'
-    settings_json = read_json_file(settings_file_path)
+    settings_json = read_json_file(SETTINGS_FILE_PATH)
 
     if settings_json:
-        print('Settings:')
-        print(json.dumps(settings_json, indent=4))
-
-        input_path = settings_json.get('inputPath')
-        input_data = read_file(input_path)
+        input_path = settings_json.get(INPUT_PATH_KEY)
+        input_data = read_text_file(input_path)
         words = input_data.lower().split()
-        word_counts = Counter(words)
+        words_with_count = Counter(words)
 
-        count_sort_order = settings_json.get('countOrder')
-        sorted_words_count = sorted(word_counts.items(), key=lambda item: item[1], reverse=count_sort_order == 'descending')
-        length_sort_order = settings_json.get('lengthOrder')
-        sorted_words_count_and_length = sorted(sorted_words_count, key=lambda item: len(item[0]), reverse=length_sort_order == 'descending')
+        count_sort_order = settings_json.get(COUNT_ORDER_KEY)
+        words_with_count_sorted_by_count = sorted(words_with_count.items(),
+                                                  key=lambda item: item[1],
+                                                  reverse=count_sort_order == 'descending')
 
-        for word, count in sorted_words_count_and_length:
-            print(f'Word: {word} Length: {len(word)} Count: {count}')
+        length_sort_order = settings_json.get(LENGTH_ORDER_KEY)
+        words_with_count_sorted_by_count_and_length = sorted(words_with_count_sorted_by_count,
+                                                             key=lambda item: len(item[0]),
+                                                             reverse=length_sort_order == 'descending')
 
-        output_path = settings_json.get('outputPath')
-        with open(output_path, 'w') as file:
-            for word, count in sorted_words_count_and_length:
-                file.write(f'Word: {word} Length: {len(word)} Count: {count}\n')
+        output_path = settings_json.get(OUTPUT_PATH_KEY)
+        write_to_file(output_path, words_with_count_sorted_by_count_and_length)
