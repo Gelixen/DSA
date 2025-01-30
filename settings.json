@@ -1,0 +1,6 @@
+{
+  "inputPath": "./input.txt",
+  "outputPath": "./output.txt",
+  "countOrder": "descending",
+  "lengthOrder": "descending"
+}
